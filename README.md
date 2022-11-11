@@ -1,4 +1,3 @@
-#
 # Plant Leaf Disease Recognition System
 
 ## Problem Statement
@@ -7,22 +6,35 @@ These diseases aren't an issue only to plant growth but they affect the human he
 
 
 
-## t
-## Badges
+## Technology Stack to be used 
 
 
 
 ![python](https://img.shields.io/badge/Python%20-%20-yellow)
+
 ![tf](https://img.shields.io/badge/Tenserflow-%20-orange)
+
 ![k](https://img.shields.io/badge/Keres-%20-black)
-!
 
-## Color Reference
+![gh](https://img.shields.io/badge/Github%20-%20-lightgrey)
 
-| Color             | Hex                                                                |
-| ----------------- | ------------------------------------------------------------------ |
-| Example Color | ![#0a192f](https://via.placeholder.com/10/0a192f?text=+) #0a192f |
-| Example Color | ![#f8f8f8](https://via.placeholder.com/10/f8f8f8?text=+) #f8f8f8 |
-| Example Color | ![#00b48a](https://via.placeholder.com/10/00b48a?text=+) #00b48a |
-| Example Color | ![#00d1a0](https://via.placeholder.com/10/00b48a?text=+) #00d1a0 |
+![mk](https://img.shields.io/badge/Markdown-%20-blue)
+
+
+
+## Technology Stack
+Backend: Tenserflow , Keres 
+
+IDE: Google collab
+
+Version Control: Git and GitHub
+
+Datasets : Kaggle 
+
+Machine Learning: Python, Collab Notebook
+
+
+## Documentation
+
+[Documentation](https://linktodocumentation)
 
