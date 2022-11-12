@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import Image, display
 from keras import backend as k
+import tensorflow as tf
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Activation, Dense, Dropout, Flatten
 from keras.models import Sequential, load_model
