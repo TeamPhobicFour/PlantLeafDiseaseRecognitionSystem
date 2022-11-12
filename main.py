@@ -149,5 +149,5 @@ scores = model.evaluate(x_test, y_test)
 print(f"Test Accuracy : {scores[1]*100}")
 
 print("[INFO] Saving model....")
-model.save('cnn_model1.h5')
+model.save(model,open('cnn_model.pkl', 'wb'))
 print("[INFO] Done Saving model....")
