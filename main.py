@@ -8,9 +8,11 @@ from os import listdir
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import tensorflow as tf
 from IPython.display import Image, display
 from keras import backend as k
-import tensorflow as tf
+from keras import losses 
+from keras import optimizers
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers.core import Activation, Dense, Dropout, Flatten
 from keras.models import Sequential, load_model
@@ -41,7 +43,7 @@ def convert_image_to_array(image_dir):
 
 
 image_list, label_list = [], []
-images_directory = os.getcwd()+"/drive/MyDrive/Hackathons/Reva_Hackathon/PlantVillage"
+images_directory = os.getcwd()+"/drive/MyDrive/Hackathons/Reva_Hackathon/PlantVillage/PlantVillage"
 try:
     print("[INFO] Loading Images....")
     root_dir = listdir(images_directory)
@@ -78,7 +80,7 @@ aug = ImageDataGenerator(
 height = 96
 width = 96
 depth = 3
-model = Sequential()
+model = Sequential() 
 inputShape = (height, width, depth)
 chanDim = -1
 if k.image_data_format() == 'channels_first':
@@ -91,40 +93,57 @@ model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
 model.add(MaxPooling2D(pool_size=(3,3)))
 model.add(Dropout(0.25))
-model.add(Conv2D(64, (3,3), padding="same"))
+model.add(Conv2D(64, (3,3), padding="same", input_shape=inputShape))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
-model.add(Conv2D(64,(3,3), padding="same"))
+model.add(Conv2D(64,(3,3), padding="same", input_shape=inputShape))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
-model.add(Conv2D(128,(3,3), padding="same"))
+model.add(Conv2D(128, (2,2), padding="same", input_shape=inputShape))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
-model.add(Conv2D(128, (3,3), padding="same"))
+model.add(Conv2D(128, (2,2), padding="same", input_shape=inputShape))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Dropout(0.25))
 model.add(Flatten())
-model.add(Dense(1024))
+model.add(Dense(1))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 model.add(Dropout(0.5))
 
 model.add(Activation("softmax"))
-model.compile(tf.keras.optimizers.Adam(learning_rate=1e-3),
-              tf.keras.losses.BinaryCrossentropy())
+model.summary()
+opt = Adam(lr=1e-3, decay=1e-3 / 5)
+model.compile(loss="binary_crossentropy", optimizer=opt,metrics=["accuracy"])
 
 print("[INFO] Training Network....")
-history = model.fit_generator(
-    aug.flow(x_train, y_train, batch_size=31),
-    steps_per_epoch = len(x_train) // 31,
-    epochs=1, verbose = 1,
-    validation_data = (x_test, y_test),
-    initial_epoch = 0)
+history = model.fit(
+    aug.flow(x_train, y_train, batch_size=32),
+    validation_data=(x_test, y_test),
+    steps_per_epoch=len(x_train) // 32,
+    epochs=5, verbose=1)
+acc = history.history['acc']
+val_acc = history.history['val_acc']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+epochs = range(1, len(acc) + 1)
+#Train and validation accuracy
+plt.plot(epochs, acc, 'b', label='Training accurarcy')
+plt.plot(epochs, val_acc, 'r', label='Validation accurarcy')
+plt.title('Training and Validation accurarcy')
+plt.legend()
 
+plt.figure()
+#Train and validation loss
+plt.plot(epochs, loss, 'b', label='Training loss')
+plt.plot(epochs, val_loss, 'r', label='Validation loss')
+plt.title('Training and Validation loss')
+plt.legend()
+plt.show()
 print("[INFO] Calculating model accuracy")
 scores = model.evaluate(x_test, y_test)
 print(f"Test Accuracy : {scores[1]*100}")
