@@ -2,46 +2,45 @@ from google.colab import drive
 
 drive.mount("/content/drive")
 
-import os
-from os import listdir
-
-import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
-from IPython.display import Image, display
-from keras import backend as k
-from keras import losses 
-from keras import optimizers
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.layers.core import Activation, Dense, Dropout, Flatten
-from keras.models import Sequential, load_model
-from tensorflow.keras.utils import img_to_array
-from keras.preprocessing.image import ImageDataGenerator
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split
+import cv2
+import os
+import pickle
+from os import listdir
+from sklearn.preprocessing import LabelBinarizer
+from keras.models import Sequential
 from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import BinaryCrossentropy
-
-
+from keras.layers.convolutional import Conv2D
+from keras.layers.convolutional import MaxPooling2D
+from keras.layers.core import Activation, Flatten, Dropout, Dense
+from keras import backend as K
+from keras.preprocessing.image import ImageDataGenerator
+from keras.optimizers import Adam
+from keras.preprocessing import image
+from tensorflow.keras.utils import img_to_array
+from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+EPOCHS = 25
+INIT_LR = 1e-3
+BS = 32
+default_image_size = tuple((256, 256))
+image_size = 0
+directory_root = os.getcwd()+"/drive/MyDrive/Hackathons/Reva_Hackathon/PlantVillage/PlantVillage"
+width=256
+height=256
+depth=3
 def convert_image_to_array(image_dir):
-    
     try:
-        
         image = cv2.imread(image_dir)
-        if image is not None:
-            image = cv2.resize(image,tuple((96,96)))
+        if image is not None :
+            image = cv2.resize(image, default_image_size)   
             return img_to_array(image)
-        else:
-            return img_to_array(image)
-        
+        else :
+            return np.array([])
     except Exception as e:
-        
         print(f"Error : {e}")
         return None
-
-
 image_list, label_list = [], []
 images_directory = os.getcwd()+"/drive/MyDrive/Hackathons/Reva_Hackathon/PlantVillage/PlantVillage"
 try:
@@ -61,71 +60,68 @@ try:
                 label_list.append(disease_folder)
                 
     print("[INFO] Image Loading Completed....")
-            
-         
-        
 except Exception as e:
     print(f"Error : {e}")
-np_image_list = np.array(image_list, dtype=np.float16)/225.0
-
-print("[INFO] Splitting training and testing datasets....")
-x_train, x_test, y_train, y_test = train_test_split(np_image_list, label_list, test_size=0.25, random_state = 42)
-print("[INFO] Done splitting datasets....")
+image_size = len(image_list)
+label_binarizer = LabelBinarizer()
+image_labels = label_binarizer.fit_transform(label_list)
+pickle.dump(label_binarizer,open('label_transform.pkl', 'wb'))
+n_classes = len(label_binarizer.classes_)
+print(label_binarizer.classes_)
+np_image_list = np.array(image_list, dtype=np.float16) / 225.0
+print("[INFO] Spliting data to train, test")
+x_train, x_test, y_train, y_test = train_test_split(np_image_list, image_labels, test_size=0.2, random_state = 42) 
 aug = ImageDataGenerator(
     rotation_range=25, width_shift_range=0.1,
-    height_shift_range=0.1, shear_range=0.2,
-    zoom_range=0.2, horizontal_flip=True,
-    fill_mode='nearest')
-
-height = 96
-width = 96
-depth = 3
-model = Sequential() 
+    height_shift_range=0.1, shear_range=0.2, 
+    zoom_range=0.2,horizontal_flip=True, 
+    fill_mode="nearest")
+model = Sequential()
 inputShape = (height, width, depth)
 chanDim = -1
-if k.image_data_format() == 'channels_first':
+if K.image_data_format() == "channels_first":
     inputShape = (depth, height, width)
     chanDim = 1
-
-
-model.add(Conv2D(32, (3,3), padding="same", input_shape=inputShape))
+model.add(Conv2D(32, (3, 3), padding="same",input_shape=inputShape))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
-model.add(MaxPooling2D(pool_size=(3,3)))
+model.add(MaxPooling2D(pool_size=(3, 3)))
 model.add(Dropout(0.25))
-model.add(Conv2D(64, (3,3), padding="same", input_shape=inputShape))
+model.add(Conv2D(64, (3, 3), padding="same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
-model.add(Conv2D(64,(3,3), padding="same", input_shape=inputShape))
+model.add(Conv2D(64, (3, 3), padding="same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
-model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
-model.add(Conv2D(128, (2,2), padding="same", input_shape=inputShape))
+model.add(Conv2D(128, (3, 3), padding="same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
-model.add(Conv2D(128, (2,2), padding="same", input_shape=inputShape))
+model.add(Conv2D(128, (3, 3), padding="same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization(axis=chanDim))
-model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
 model.add(Flatten())
-model.add(Dense(1))
+model.add(Dense(1024))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 model.add(Dropout(0.5))
-
+model.add(Dense(n_classes))
 model.add(Activation("softmax"))
 model.summary()
-opt = Adam(lr=1e-3, decay=1e-3 / 5)
+opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
+# distribution
 model.compile(loss="binary_crossentropy", optimizer=opt,metrics=["accuracy"])
-
-print("[INFO] Training Network....")
-history = model.fit(
-    aug.flow(x_train, y_train, batch_size=32),
+# train the network
+print("[INFO] training network...")
+history = model.fit_generator(
+    aug.flow(x_train, y_train, batch_size=BS),
     validation_data=(x_test, y_test),
-    steps_per_epoch=len(x_train) // 32,
-    epochs=5, verbose=1)
+    steps_per_epoch=len(x_train) // BS,
+    epochs=EPOCHS, verbose=1
+    )
 acc = history.history['acc']
 val_acc = history.history['val_acc']
 loss = history.history['loss']
@@ -146,8 +142,6 @@ plt.legend()
 plt.show()
 print("[INFO] Calculating model accuracy")
 scores = model.evaluate(x_test, y_test)
-print(f"Test Accuracy : {scores[1]*100}")
-
-print("[INFO] Saving model....")
-model.save(model,open('cnn_model.pkl', 'wb'))
-print("[INFO] Done Saving model....")
+print(f"Test Accuracy: {scores[1]*100}")
+# save the model to disk
+print("[INFO] Saving model...")
