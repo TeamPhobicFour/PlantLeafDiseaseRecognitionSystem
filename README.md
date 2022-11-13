@@ -34,6 +34,9 @@ Datasets : Kaggle
 Machine Learning: Python, Collab Notebook
 
 
+## Documentation
+
+[Documentation](https://docs.google.com/document/d/1qwsMn5D3sJV2EQxMsCsYO81-UOy1uWkL/edit?usp=sharing&ouid=100149492822185292673&rtpof=true&sd=true)
 
 
 
@@ -50,6 +53,3 @@ Machine Learning: Python, Collab Notebook
 | Adarsh Suresh Menon | |
 | Sanvi Sundarrajan|  |
 |             |                                                               |
-
-
-
