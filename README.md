@@ -34,9 +34,6 @@ Datasets : Kaggle
 Machine Learning: Python, Collab Notebook
 
 
-## Documentation
-
-[Documentation](https://linktodocumentation)
 
 
 
